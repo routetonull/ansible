@@ -8,7 +8,7 @@
     - name: SET FACTS
       set_fact:
         snmp_community: "snmp-server community MYCOMM RW" 
-		# command output that should be present in running config
+        # command output that should be present in running config
   
     - name: GET CREDENTIALS
       # read credentials from file
