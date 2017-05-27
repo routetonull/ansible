@@ -46,7 +46,7 @@
       # if variable "changed" exists and it's value is "true", meaning a configuration change was made...
       when: "(changed is defined) and (changed == true)" # ONLY SAVE IF CONFIG HAS CHANGED
       # ...run the following command to save the configuration
-	  ios_command:
+      ios_command:
         provider: "{{ provider }}"
         commands:
           - "write memory"
