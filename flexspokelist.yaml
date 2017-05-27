@@ -1,0 +1,28 @@
+---
+- connection: local
+  gather_facts: no
+  hosts: ios
+
+  tasks:
+
+    - name: GET CREDENTIALS
+      include_vars: secrets.yaml
+
+    - name: DEFINE PROVIDER
+      set_fact:
+        provider:
+          host: "{{ inventory_hostname }}"
+          username: "{{ creds['username'] }}"
+          password: "{{ creds['password'] }}"
+
+    - name: SHOW SPOKES
+      register: config
+      ios_command:
+        provider: "{{ provider }}"
+        commands:
+          - "sh ip bgp | i 172.23.11"
+
+    - name: append to output
+      copy:
+        content: "{{ config.stdout[0] }}"
+        dest: "/etc/ansible/results/{{ inventory_hostname }}.txt"
