@@ -1,0 +1,52 @@
+---
+- connection: local
+  gather_facts: no
+  hosts: ios
+  
+  tasks:
+
+    - name: SET FACTS
+      set_fact:
+        snmp_community: "snmp-server community MYCOMM RW" 
+		# command output that should be present in running config
+  
+    - name: GET CREDENTIALS
+      # read credentials from file
+      include_vars: secrets.yaml
+
+    - name: DEFINE PROVIDER
+      # set some variables
+      set_fact:
+        provider:
+          host: "{{ inventory_hostname }}"
+          username: "{{ creds['username'] }}"
+          password: "{{ creds['password'] }}"
+
+    - name: GET COMMUNITY
+      # variable snmp_config will store the output ot the command below
+      register: snmp_config	      
+      ios_command:
+        provider: "{{ provider }}"
+        commands:
+           # this is the command that will be run on remote hosts
+           - "sh run | i snmp-server community MYCOMM RW"
+
+    - name: SET COMMUNITY
+      # if the community is not in running configuration...
+      when: ("snmp_community != snmp_config.stdout_lines[0]")
+      # ...set a variable with name "changed"...
+      register: changed
+      # ...and run the following command
+      ios_config:
+        provider: "{{ provider }}"
+        lines:
+          - snmp-server community MYCOMM RW
+
+    - name: SAVE CONFIG
+      # if variable "changed" exists and it's value is "true", meaning a configuration change was made...
+      when: "(changed is defined) and (changed == true)" # ONLY SAVE IF CONFIG HAS CHANGED
+      # ...run the following command to save the configuration
+	  ios_command:
+        provider: "{{ provider }}"
+        commands:
+          - "write memory"
